@@ -11,34 +11,50 @@ client_send_to = 'MIT'
 def client_program():
     print('Starting Client ' + client_id + ' connecting with ' + client_send_to)  # show in terminal
 
-    client_socket = socket.socket()  # instantiate
-    client_socket.connect((relay_server_host, relay_server_port))  # connect to the server
+    # instantiate
+    client_socket = socket.socket()  
+    # connect to the server
+    client_socket.connect((relay_server_host, relay_server_port)) 
 
-    client_socket.send(json.dumps({"client_id": client_id}).encode())  
+    # register this computer by name
+    client_socket.send(format_client_id_msg(client_id))  
 
-    # Wait for 1 seconds otherwise socket concatenates the two sends
+    # Wait for 1 second otherwise socket concatenates the two sends
     time.sleep(1)
 
     ############ Runs First layers of ML ##########
-    partial_forward_prop_results = "!@#$!#$!#$!@#$!@#$!@"
+    activation_functions = calculate_partial_forward_prop()
     
     # send to MIT to contine the process. 
-    messageToMIT = {"to": client_send_to, "data": partial_forward_prop_results}
-    print('Sending Activation Function ' + messageToMIT['data'] + ' to ' + messageToMIT['to'])
-    client_socket.send(json.dumps(messageToMIT).encode())  
+    client_socket.send(format_data_msg(client_send_to, activation_functions))  
 
     # waits for MIT to finish and receives the results from the back_propagation. 
-    partial_backward_prop_resultsRaw = client_socket.recv(1024).decode();
-    partial_backward_prop_results = json.loads(partial_backward_prop_resultsRaw) 
+    gradientsRaw = client_socket.recv(1024).decode();
+    gradients = json.loads(gradientsRaw) 
 
-    if 'error' not in partial_backward_prop_results.keys(): 
+    if 'error' not in gradients.keys(): 
         ############ Continues Back Propagation ##########
-        print('Received Gradients ' + partial_backward_prop_results['data'] + ' from ' + partial_backward_prop_results['from'])
+        print('Received Gradients ' + gradients['data'] + ' from ' + gradients['from'])
+
+        calculate_partial_backward_prop(gradients['data'])
     else: 
         print('ERROR: Please start MIT first ')
 
     client_socket.close()  # close the connection
 
+def calculate_partial_forward_prop():
+    return "!@#$!#$!#$!@#$!@#$!@"
+
+def calculate_partial_backward_prop(gradients):
+    return ""
+
+def format_client_id_msg(client_id):
+    return json.dumps({"client_id": client_id}).encode()
+
+def format_data_msg(to, data):
+    message = {"to": client_send_to, "data": data}
+    print('Sending Gradients ' + message['data'] + ' to ' + message['to'])
+    return json.dumps(message).encode()
 
 if __name__ == '__main__':
     client_program()

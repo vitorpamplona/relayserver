@@ -11,33 +11,48 @@ client_send_to = 'HARVARD'
 def client_program():
     print('Starting Client ' + client_id + ' connecting with ' + client_send_to)  # show in terminal
 
-    client_socket = socket.socket()  # instantiate
-    client_socket.connect((relay_server_host, relay_server_port))  # connect to the server
+    # instantiate
+    client_socket = socket.socket()  
+    # connect to the server
+    client_socket.connect((relay_server_host, relay_server_port)) 
 
-    client_socket.send(json.dumps({"client_id": client_id}).encode())  
+    # register this computer by name
+    client_socket.send(format_client_id_msg(client_id))  
 
-    # Wait for 1 seconds otherwise socket concatenates the two sends
+    # Wait for 1 second otherwise socket concatenates the two sends
     time.sleep(1)
 
     # waiting for HARVARD to finish the first forward propagation
     msgRaw = client_socket.recv(1024).decode()
-    partial_forward_prop_results = json.loads(msgRaw)  # receive response
+    partial_activation_functions = json.loads(msgRaw)  # receive response
     
     ############ Runs last layers layers of Forward propagation ##########
-    print('Received Activation Functions ' + partial_forward_prop_results['data'] + ' from ' + partial_forward_prop_results['from'])
+    print('Received Activation Functions ' + partial_activation_functions['data'] + ' from ' + partial_activation_functions['from'])
 
     ############ Evaluates results ##########
+    finish_forward_prop(partial_activation_functions['data'])
 
     ############ Runs Backprogatation ##########
-    partial_backpropagation_prop_results = "ZXCVZXVCZXVZXCVZXVC"
+    partial_gradients = start_backward_prop()
 
     # send to HARVARD to finish the process. 
-    messageToHarvard = {"to": client_send_to, "data": partial_backpropagation_prop_results}
-    print('Sending Gradients ' + partial_forward_prop_results['data'] + ' to ' + partial_forward_prop_results['from'])
-    client_socket.send(json.dumps(messageToHarvard).encode())  # send message
+    client_socket.send(format_data_msg(client_send_to, partial_gradients))  # send message
 
     client_socket.close()  # close the connection
 
+def finish_forward_prop(data):
+    return ""
+
+def start_backward_prop():
+    return "ZXCVZXVCZXVZXCVZXVC"
+
+def format_client_id_msg(client_id):
+    return json.dumps({"client_id": client_id}).encode()
+
+def format_data_msg(to, data):
+    message = {"to": client_send_to, "data": data}
+    print('Sending Gradients ' + message['data'] + ' to ' + message['to'])
+    return json.dumps(message).encode()
 
 if __name__ == '__main__':
     client_program()
