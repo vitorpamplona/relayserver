@@ -8,7 +8,7 @@ relay_server_port = 5000  # socket server port number
 client_id = 'HARVARD'
 client_send_to = 'MIT'
 
-def client_program():
+def harvard_program():
     print('Starting Client ' + client_id + ' connecting with ' + client_send_to)  # show in terminal
 
     # instantiate
@@ -23,29 +23,28 @@ def client_program():
     time.sleep(1)
 
     ############ Runs First layers of ML ##########
-    activation_functions = calculate_partial_forward_prop()
+    activation_functions = start_forward_prop()
     
     # send to MIT to contine the process. 
     client_socket.send(format_data_msg(client_send_to, activation_functions))  
 
     # waits for MIT to finish and receives the results from the back_propagation. 
-    gradientsRaw = client_socket.recv(1024).decode();
-    gradients = json.loads(gradientsRaw) 
+    gradients = parse_data_msg(client_socket.recv(1024))
 
     if 'error' not in gradients.keys(): 
         ############ Continues Back Propagation ##########
         print('Received Gradients ' + gradients['data'] + ' from ' + gradients['from'])
 
-        calculate_partial_backward_prop(gradients['data'])
+        finish_backward_prop(gradients['data'])
     else: 
         print('ERROR: Please start MIT first ')
 
     client_socket.close()  # close the connection
 
-def calculate_partial_forward_prop():
+def start_forward_prop():
     return "!@#$!#$!#$!@#$!@#$!@"
 
-def calculate_partial_backward_prop(gradients):
+def finish_backward_prop(gradients):
     return ""
 
 def format_client_id_msg(client_id):
@@ -56,5 +55,8 @@ def format_data_msg(to, data):
     print('Sending Gradients ' + message['data'] + ' to ' + message['to'])
     return json.dumps(message).encode()
 
+def parse_data_msg(data):
+    return json.loads(data.decode()) 
+
 if __name__ == '__main__':
-    client_program()
+    harvard_program()

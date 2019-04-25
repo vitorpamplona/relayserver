@@ -8,7 +8,7 @@ relay_server_port = 5000  # socket server port number
 client_id = 'MIT'
 client_send_to = 'HARVARD'
 
-def client_program():
+def mit_program():
     print('Starting Client ' + client_id + ' connecting with ' + client_send_to)  # show in terminal
 
     # instantiate
@@ -23,8 +23,7 @@ def client_program():
     time.sleep(1)
 
     # waiting for HARVARD to finish the first forward propagation
-    msgRaw = client_socket.recv(1024).decode()
-    partial_activation_functions = json.loads(msgRaw)  # receive response
+    partial_activation_functions = parse_data_msg(client_socket.recv(1024))  # receive response
     
     ############ Runs last layers layers of Forward propagation ##########
     print('Received Activation Functions ' + partial_activation_functions['data'] + ' from ' + partial_activation_functions['from'])
@@ -54,5 +53,8 @@ def format_data_msg(to, data):
     print('Sending Gradients ' + message['data'] + ' to ' + message['to'])
     return json.dumps(message).encode()
 
+def parse_data_msg(data):
+    return json.loads(data.decode()) 
+
 if __name__ == '__main__':
-    client_program()
+    mit_program()
