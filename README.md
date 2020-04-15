@@ -1,6 +1,6 @@
 # RelayServer
 
-Simple relay server between two clients that will have known code to each other. 
+Simple socket relay server between two clients that known each other. 
 
 # Running
 
